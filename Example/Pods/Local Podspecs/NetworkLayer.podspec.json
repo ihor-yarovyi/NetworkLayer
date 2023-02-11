@@ -1,24 +1,24 @@
 {
   "name": "NetworkLayer",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "summary": "Network Layer",
-  "swift_versions": "5.4",
+  "swift_versions": "5.7",
   "description": "Network Layer for your Redux app",
-  "homepage": "https://gitlab.cleveroad.com/ios-redux/network",
+  "homepage": "https://github.com/ihor-yarovyi/NetworkLayer",
   "license": {
     "type": "MIT",
     "file": "LICENSE"
   },
   "authors": {
-    "Ihor Yarovyi": "ihor.yarovyi.cr@gmail.com"
+    "Ihor Yarovyi": "ihor.yarovyi@ukr.net"
   },
   "source": {
-    "git": "https://gitlab.cleveroad.com/ios-redux/network.git",
-    "tag": "0.1.2"
+    "git": "https://github.com/ihor-yarovyi/NetworkLayer.git",
+    "tag": "0.2.0"
   },
   "platforms": {
-    "ios": "13.0"
+    "ios": "16.0"
   },
   "source_files": "**/Classes/**/*.{swift}",
-  "swift_version": "5.4"
+  "swift_version": "5.7"
 }

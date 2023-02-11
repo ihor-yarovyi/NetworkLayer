@@ -8,9 +8,9 @@
 
 Pod::Spec.new do |s|
   s.name             = 'NetworkLayer'
-  s.version          = '0.1.6'
+  s.version          = '0.2.0'
   s.summary          = 'Network Layer'
-  s.swift_versions   = '5.5'
+  s.swift_versions   = '5.7'
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
   s.source           = { :git => 'https://github.com/ihor-yarovyi/NetworkLayer.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
-  s.ios.deployment_target = '15.0'
+  s.ios.deployment_target = '16.0'
 
   s.source_files = '**/Classes/**/*.{swift}'
   

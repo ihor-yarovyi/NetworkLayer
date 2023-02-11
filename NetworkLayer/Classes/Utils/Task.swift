@@ -1,5 +1,5 @@
 //
-//  Operator+Task.swift
+//  Task.swift
 //  NetworkLayer
 //
 //  Created by Ihor Yarovyi on 6/29/21.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension Network.Operator {
+public extension Network {
     enum Task {
         /// A request with no additional data.
         case requestPlain
