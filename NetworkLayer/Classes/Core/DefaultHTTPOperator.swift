@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import os
 
 public final class DefaultHTTPOperator: HTTPOperator {
     public typealias URLSessionProcessData = (URLRequest, URLSessionTaskDelegate?) async throws -> (Data, URLResponse)
@@ -15,6 +16,7 @@ public final class DefaultHTTPOperator: HTTPOperator {
     private var token: String?
     private let operationQueue = OperationQueue()
     private let processingQueue: DispatchQueue
+    private let logger = Logger(subsystem: "\(DefaultHTTPOperator.self)", category: "\(DefaultHTTPOperator.self)")
     public let refreshTokenEndPointProvider: RefreshTokenEndPointProvider
     public let tokenDecorator: TokenDecorator
     public let tokenInterpreter: TokenInterpreter.Type
@@ -40,6 +42,7 @@ public final class DefaultHTTPOperator: HTTPOperator {
 
     public func sendRequest(_ request: Network.RequestItem) {
         dispatchPrecondition(condition: .onQueue(processingQueue))
+        logger.info("receive request: \(request.request.method.rawValue) \(request.request.path)")
 
         let operation = RequestOperation(
             requestItem: request,
@@ -59,14 +62,17 @@ public final class DefaultHTTPOperator: HTTPOperator {
     }
 
     public func cancelAllRequests() {
+        logger.info("cancel all requests")
         operationQueue.cancelAllOperations()
     }
 
     public func setToken(_ rawToken: String) {
+        logger.info("set token: \(rawToken)")
         token = tokenDecorator.decorate(rawToken: rawToken)
     }
 
     public func clearToken() {
+        logger.info("clear token")
         token = nil
     }
 }
@@ -74,7 +80,8 @@ public final class DefaultHTTPOperator: HTTPOperator {
 // MARK: - Private Helpers
 private extension DefaultHTTPOperator {
     func createRequest(for requestConvertible: RequestConvertible) throws -> Network.Request {
-        try Network.Request(
+        logger.info("create the Request instance for the folling path: \(requestConvertible.path)")
+        return try Network.Request(
             requestConvertible: requestConvertible,
             baseURL: baseURL
         )
@@ -85,7 +92,9 @@ private extension DefaultHTTPOperator {
         numberOfCalls: Int = 0,
         status: Network.NetworkError.Status? = nil
     ) async -> Result<Data, Network.NetworkError> {
+        logger.info("try to send request [\(request.requestConvertible.method.rawValue) \(request.requestConvertible.path)]; attempts: \(numberOfCalls)")
         guard numberOfCalls < Defaults.maxNumberOfCalls else {
+            logger.error("exceed request attempts for the [\(request.requestConvertible.method.rawValue) \(request.requestConvertible.path)]")
             return .failure(Network.NetworkError(status: status ?? .tooManyRequests))
         }
 
@@ -97,8 +106,10 @@ private extension DefaultHTTPOperator {
         do {
             let (data, response) = try await processData(request.urlRequest, nil)
             guard let response = response as? HTTPURLResponse else {
+                logger.error("failed to cast response for the [\(request.requestConvertible.method.rawValue) \(request.requestConvertible.path)]")
                 return .failure(Network.NetworkError(status: .badServerResponse))
             }
+            logger.info("receive response for the [\(request.requestConvertible.method.rawValue) \(request.requestConvertible.path)] - status code: \(response.statusCode)")
             switch response.statusCode {
             case 200...299:
                 return .success(data)
@@ -118,11 +129,13 @@ private extension DefaultHTTPOperator {
                 return .failure(Network.NetworkError(errorCode: response.statusCode))
             }
         } catch {
+            logger.error("failed to perform the request [\(request.requestConvertible.method.rawValue) \(request.requestConvertible.path)]")
             return .failure(.init(error: error))
         }
     }
 
     func refreshToken() async throws {
+        logger.info("try to refresh token")
         let request = try createRequest(for: refreshTokenEndPointProvider.endPoint)
         let data = try await sendRequestHelper(request, status: .unauthorized).get()
         let value = try JSONDecoder().decode(tokenInterpreter.self, from: data)
@@ -130,6 +143,9 @@ private extension DefaultHTTPOperator {
     }
 
     func updateToken(for request: inout Network.Request) {
+        let method = request.requestConvertible.method.rawValue
+        let path = request.requestConvertible.path
+        logger.info("update token for request: [\(method) \(path)]")
         request.urlRequest.setValue(token, forHTTPHeaderField: Defaults.authorization)
     }
 }
