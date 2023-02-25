@@ -14,12 +14,14 @@ public final class DefaultHTTPOperator: HTTPOperator {
     private let baseURL: URL
     private let processData: URLSessionProcessData
     private var token: String?
+    private var rawToken: String?
     private let operationQueue = OperationQueue()
     private let processingQueue: DispatchQueue
     private let logger = Logger(subsystem: "\(DefaultHTTPOperator.self)", category: "\(DefaultHTTPOperator.self)")
     public let refreshTokenEndPointProvider: RefreshTokenEndPointProvider
     public let tokenDecorator: TokenDecorator
     public let tokenInterpreter: TokenInterpreter.Type
+    public weak var delegate: HTTPOperatorDelegate?
 
     public init(
         baseURL: URL,
@@ -27,6 +29,7 @@ public final class DefaultHTTPOperator: HTTPOperator {
         refreshTokenEndPointProvider: RefreshTokenEndPointProvider,
         tokenDecorator: TokenDecorator,
         tokenInterpreter: TokenInterpreter.Type,
+        delegate: HTTPOperatorDelegate? = nil,
         processingQueue: DispatchQueue
     ) {
         self.baseURL = baseURL
@@ -34,6 +37,7 @@ public final class DefaultHTTPOperator: HTTPOperator {
         self.refreshTokenEndPointProvider = refreshTokenEndPointProvider
         self.tokenDecorator = tokenDecorator
         self.tokenInterpreter = tokenInterpreter
+        self.delegate = delegate
         self.processingQueue = processingQueue
         operationQueue.maxConcurrentOperationCount = Defaults.Queue.maxConcurrentOperationCount
         operationQueue.underlyingQueue = processingQueue
@@ -51,7 +55,7 @@ public final class DefaultHTTPOperator: HTTPOperator {
             guard let self else { return }
             do {
                 let request = try self.createRequest(for: requestItem.request)
-                let result = await self.sendRequestHelper(request)
+                let result = await self.sendRequest(request)
                 requestItem.completion(result)
             } catch {
                 requestItem.completion(.failure(.init(error: error)))
@@ -67,12 +71,15 @@ public final class DefaultHTTPOperator: HTTPOperator {
     }
 
     public func setToken(_ rawToken: String) {
+        guard rawToken != self.rawToken else { return }
         logger.info("set token: \(rawToken)")
+        self.rawToken = rawToken
         token = tokenDecorator.decorate(rawToken: rawToken)
     }
 
     public func clearToken() {
         logger.info("clear token")
+        rawToken = nil
         token = nil
     }
 }
@@ -87,7 +94,7 @@ private extension DefaultHTTPOperator {
         )
     }
 
-    func sendRequestHelper(
+    func sendRequest(
         _ request: Network.Request,
         numberOfCalls: Int = 0,
         status: Network.NetworkError.Status? = nil
@@ -117,10 +124,10 @@ private extension DefaultHTTPOperator {
                 guard status != .unauthorized else { return .failure(Network.NetworkError(status: .unauthorized)) }
                 try await refreshToken()
                 updateToken(for: &request)
-                return await sendRequestHelper(request, numberOfCalls: numberOfCalls + 1)
+                return await sendRequest(request, numberOfCalls: numberOfCalls + 1)
             case 502, 503, 504, -1001:
                 try await Task.sleep(until: .now + .seconds(1), clock: .continuous)
-                return await sendRequestHelper(
+                return await sendRequest(
                     request,
                     numberOfCalls: numberOfCalls + 1,
                     status: .init(rawValue: response.statusCode) ?? .internalServerError
@@ -137,9 +144,11 @@ private extension DefaultHTTPOperator {
     func refreshToken() async throws {
         logger.info("try to refresh token")
         let request = try createRequest(for: refreshTokenEndPointProvider.endPoint)
-        let data = try await sendRequestHelper(request, status: .unauthorized).get()
+        let data = try await sendRequest(request, status: .unauthorized).get()
         let value = try JSONDecoder().decode(tokenInterpreter.self, from: data)
+        let rawToken = rawToken ?? ""
         setToken(value.token)
+        delegate?.didRefresh(self, from: rawToken, to: value.token)
     }
 
     func updateToken(for request: inout Network.Request) {

@@ -11,6 +11,7 @@ public protocol HTTPOperator {
     var refreshTokenEndPointProvider: RefreshTokenEndPointProvider { get }
     var tokenDecorator: TokenDecorator { get }
     var tokenInterpreter: TokenInterpreter.Type { get }
+    var delegate: HTTPOperatorDelegate? { get set }
 
     func sendRequest(_ request: Network.RequestItem)
     func cancelAllRequests()
