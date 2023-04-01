@@ -10,5 +10,6 @@ import Foundation
 @testable import NetworkLayer
 
 struct MockTokenInterpreter: TokenInterpreter {
-    var token: String
+    var accessToken: String
+    var refreshToken: String
 }

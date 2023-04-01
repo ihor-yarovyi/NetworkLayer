@@ -8,5 +8,6 @@
 import Foundation
 
 public protocol HTTPOperatorDelegate: AnyObject {
-    func didRefresh(_ operator: HTTPOperator, from oldToken: String, to newToken: String)
+    func didUpdateAccessToken(_ operator: HTTPOperator, from oldToken: String, to newToken: String)
+    func didUpdateRefreshToken(_ operator: HTTPOperator, to newToken: String)
 }

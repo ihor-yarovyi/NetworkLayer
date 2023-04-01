@@ -8,5 +8,6 @@
 import Foundation
 
 public protocol TokenInterpreter: Codable {
-    var token: String { get }
+    var accessToken: String { get }
+    var refreshToken: String { get }
 }

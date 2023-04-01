@@ -461,7 +461,9 @@ final class Tests: XCTestCase {
         refreshTokenExpectation.expectedFulfillmentCount = 1
         responseExpectation.expectedFulfillmentCount = 2
         processData.data = try JSONEncoder().encode(testModel)
-        processData.refreshTokenData = try JSONEncoder().encode(MockTokenInterpreter(token: "token_string"))
+        processData.refreshTokenData = try JSONEncoder().encode(
+            MockTokenInterpreter(accessToken: "access_token_string", refreshToken: "refresh_token_string")
+        )
         processData.processingQueue = processingQueue
         processData.successResponse = SuccessTestResponse()
         processData.failureResponse = UnauthorizeErrorTestResponse()
@@ -501,7 +503,9 @@ final class Tests: XCTestCase {
         refreshTokenExpectation.expectedFulfillmentCount = 1
         responseExpectation.expectedFulfillmentCount = 1
         processData.data = try JSONEncoder().encode(testModel)
-        processData.refreshTokenData = try JSONEncoder().encode(MockTokenInterpreter(token: "token_string"))
+        processData.refreshTokenData = try JSONEncoder().encode(
+            MockTokenInterpreter(accessToken: "access_token_string", refreshToken: "refresh_token_string")
+        )
         processData.processingQueue = processingQueue
         processData.successResponse = SuccessTestResponse()
         processData.failureResponse = UnauthorizeErrorTestResponse()
@@ -540,7 +544,9 @@ final class Tests: XCTestCase {
         refreshTokenExpectation.expectedFulfillmentCount = 1
         responseExpectation.expectedFulfillmentCount = 1
         processData.data = try JSONEncoder().encode(testModel)
-        processData.refreshTokenData = try JSONEncoder().encode(MockTokenInterpreter(token: "token_string"))
+        processData.refreshTokenData = try JSONEncoder().encode(
+            MockTokenInterpreter(accessToken: "access_token_string", refreshToken: "refresh_token_string")
+        )
         processData.processingQueue = processingQueue
         processData.successResponse = SuccessTestResponse()
         processData.failureResponse = UnauthorizeErrorTestResponse()
@@ -609,7 +615,7 @@ final class Tests: XCTestCase {
     func testRefreshTokenInRequestSequence() throws {
         var requests: [Network.RequestItem] = []
         let token = "initial_token"
-        let newToken = "new_token"
+        let newToken = "new_access_token"
         let authField = MockTokenDecorator().decorate(rawToken: newToken)
         let responseExpectation = expectation(description: "should be called in response")
         let resultExpectation = expectation(description: "should be called in result")
@@ -620,7 +626,9 @@ final class Tests: XCTestCase {
         resultExpectation.expectedFulfillmentCount = 10
         authorizationExpectation.expectedFulfillmentCount = 7
         processData.data = try JSONEncoder().encode(testModel)
-        processData.refreshTokenData = try JSONEncoder().encode(MockTokenInterpreter(token: newToken))
+        processData.refreshTokenData = try JSONEncoder().encode(
+            MockTokenInterpreter(accessToken: newToken, refreshToken: "refresh_token_string")
+        )
         processData.processingQueue = processingQueue
         processData.successResponse = SuccessTestResponse()
         processData.failureResponse = UnauthorizeErrorTestResponse()
