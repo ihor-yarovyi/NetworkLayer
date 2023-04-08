@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'NetworkLayer'
-  s.version          = '0.2.3'
+  s.version          = '0.2.4'
   s.summary          = 'Network Layer'
   s.swift_versions   = '5.7'
 

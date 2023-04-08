@@ -148,8 +148,7 @@ private extension DefaultHTTPOperator {
         let value = try JSONDecoder().decode(tokenInterpreter.self, from: data)
         let rawToken = rawToken ?? ""
         setToken(value.accessToken)
-        delegate?.didUpdateAccessToken(self, from: rawToken, to: value.accessToken)
-        delegate?.didUpdateRefreshToken(self, to: value.refreshToken)
+        delegate?.didUpdateTokens(self, from: rawToken, to: value.accessToken, new: value.refreshToken)
     }
 
     func updateToken(for request: inout Network.Request) {
